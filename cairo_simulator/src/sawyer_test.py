@@ -65,7 +65,6 @@ def main():
 
             midpoint =( (x1 + x2)/2, (y1 + y2)/2 , (z1 + z2)/2 )
 
-
         # reset the position of the head object every step to prevent it from 
         # falling due to gravity
         p.resetBasePositionAndOrientation(bodyUniqueId=head_ID, posObj=(1.50, 0, 1), ornObj=(0, 0, yaw, 1) )
@@ -75,7 +74,14 @@ def main():
         p.resetBasePositionAndOrientation(bodyUniqueId=iron_ID, posObj=step_iron_pos, ornObj=p.getQuaternionFromEuler([1, 0, 0]) )
         
         # maintain the cube at the midpoint of head and soldering iron
-        joint_config = sawyer_robot.solve_inverse_kinematics(midpoint, p.getQuaternionFromEuler([-1, 0, 0]))
+        # joint_config = sawyer_robot.solve_inverse_kinematics(midpoint, p.getQuaternionFromEuler([-1, 0, 0]))
+
+        sawyer_quat = p.getQuaternionFromEuler([np.pi, 0, 0])
+        offset = p.rotateVector(sawyer_quat, [0, 0, 0.14])
+        ik_vector = [(a - b) for a, b in zip(midpoint, offset)]
+        joint_config = sawyer_robot.solve_inverse_kinematics(ik_vector, sawyer_quat)
+        joint_config += [0.0, -0.0]
+
         sawyer_robot.move_to_joint_pos(joint_config)
 
     p.disconnect()
