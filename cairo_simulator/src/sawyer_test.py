@@ -76,6 +76,8 @@ def main():
     yaw = 0.4
 
     # Loop until someone shuts us down
+    placement = 0.40
+    start_time = time.time()
     while rospy.is_shutdown() is not True:
         sim.step()
         # apply force on the soldering iron to move it along y axis
@@ -86,6 +88,11 @@ def main():
         # Apply force to the object/soldering iron
         # make sure its position its position is not too far such that the human
         # head cannot turn that much
+        
+        if 6 >= time.time() - start_time >= 5:
+            s = time.time() - start_time - 5
+            placement = min(0.65, 0.4 + 0.25 * s)
+        
         if step_pos[0] < 1.155 and step_pos[1] < 0.20:
             p.applyExternalForce(objectUniqueId=iron_ID, linkIndex=-1,
                                  forceObj=force, posObj=ironPos, flags=p.WORLD_FRAME)
@@ -106,7 +113,7 @@ def main():
             y2 = step_iron_pos[1]  # iron y-coordinate
             z2 = step_iron_pos[2]  # iron z-coordinate
 
-            midpoint = ((x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2)
+            midpoint = get_magnifier_point([x2, y2, z2], [x1, y1, z1], placement)
 
         # reset the position of the head object every step to prevent it from
         # falling due to gravity
